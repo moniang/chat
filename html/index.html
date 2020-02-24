@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><link rel=icon href=/static/favicon.ico><title>墨娘的群聊</title><link href=/static/css/index.b800bf6f.css rel=prefetch><link href=/static/js/index.1048d8ec.js rel=prefetch><link href=/static/css/app.e188ae06.css rel=preload as=style><link href=/static/css/chunk-vendors.717c90ab.css rel=preload as=style><link href=/static/js/app.94ed6c0e.js rel=preload as=script><link href=/static/js/chunk-vendors.2d85ae49.js rel=preload as=script><link href=/static/css/chunk-vendors.717c90ab.css rel=stylesheet><link href=/static/css/app.e188ae06.css rel=stylesheet></head><body><div id=app></div><script src=/static/js/chunk-vendors.2d85ae49.js></script><script src=/static/js/app.94ed6c0e.js></script></body><script>(function() {
+      var lastTime = 0;
+      var vendors = ['ms', 'moz', 'webkit', 'o'];
+      for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+      }
+
+      if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+          var currTime = new Date().getTime();
+          var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+          var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+                  timeToCall);
+          lastTime = currTime + timeToCall;
+          return id;
+        };
+
+      if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+          clearTimeout(id);
+        };
+    }());</script></html>
