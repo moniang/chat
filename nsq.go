@@ -26,6 +26,7 @@ func InitProducer(ipAddr string) (errorNo int, err error) {
 		return 1, err
 	}
 
+	producer.SetLogger(nil, 0) // 屏蔽系统日志
 	producer.SetLogger(log.New(ioutil.Discard, "", log.LstdFlags), nsq.LogLevelInfo)
 	err = producer.Ping()
 	if err != nil {
