@@ -1,0 +1,87 @@
+// 覆盖一些元素UI样式
+.el-breadcrumb__inner,
+.el-breadcrumb__inner a {
+  font-weight: 400 !important;
+}
+
+.el-upload {
+  input[type="file"] {
+    display: none !important;
+  }
+}
+
+.el-upload__input {
+  display: none;
+}
+
+.cell {
+  .el-tag {
+    margin-right: 0px;
+  }
+}
+
+.small-padding {
+  .cell {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
+
+.fixed-width {
+  .el-button--mini {
+    padding: 7px 10px;
+    width: 60px;
+  }
+}
+
+.status-col {
+  .cell {
+    padding: 0 10px;
+    text-align: center;
+
+    .el-tag {
+      margin-right: 0px;
+    }
+  }
+}
+// 修复Mac OS ,QQ浏览器，Chrome，以及Dialog内Select Tree等组件的虚晃BUG
+.el-dialog {
+  transform: none;
+  left: 0;
+  position: relative;
+  margin: 0 auto;
+}
+
+// 上传元素
+.upload-container {
+  .el-upload {
+    width: 100%;
+
+    .el-upload-dragger {
+      width: 100%;
+      height: 200px;
+    }
+  }
+}
+
+// 下拉列表
+.el-dropdown-menu {
+  a {
+    display: block
+  }
+}
+
+// 修复filter-item中的date-picker UI BUG
+.el-range-editor.el-input__inner {
+  display: inline-flex !important;
+}
+
+// 清除单选框阴影
+.el-radio:focus:not(.is-focus):not(:active):not(.is-disabled) .el-radio__inner{
+  box-shadow: none;
+}
+
+// 清除tab按钮阴影
+.el-radio-button:focus:not(.is-focus):not(:active):not(.is-disabled){
+  box-shadow: none;
+}
