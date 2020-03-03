@@ -26,6 +26,7 @@ go build
 chat
 ```
 界面：http://127.0.0.1:8080/
+界面在Vue分支
 
 演示地址：https://chat.imoniang.com
 
