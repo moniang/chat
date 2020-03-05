@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -103,9 +104,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			m.FontColor = client.FontColor
 		}
 		m.ID = client.Id
-
 		m.SendTime = time.Now().Unix()
-		m.Message = template.HTMLEscapeString(m.Message)
+		m.Message = template.HTMLEscapeString(strings.ReplaceAll(m.Message, "\n", ""))
 		// TODO:判断消息长度
 		message, err := json.Marshal(m)
 		if err != nil {
