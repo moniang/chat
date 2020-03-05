@@ -105,7 +105,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		m.ID = client.Id
 		m.SendTime = time.Now().Unix()
-		m.Message = template.HTMLEscapeString(strings.ReplaceAll(m.Message, "\n", ""))
+		m.Message = template.HTMLEscapeString(strings.Replace(m.Message, "\n", "", -1))
 		// TODO:判断消息长度
 		message, err := json.Marshal(m)
 		if err != nil {
