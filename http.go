@@ -5,6 +5,7 @@ import (
 	"github.com/moniang/chat/lib"
 	"github.com/moniang/chat/service"
 	"github.com/moniang/chat/sql"
+	"github.com/moniang/validate"
 	"net/http"
 )
 
@@ -33,18 +34,22 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Add("content-type", "application/json;charset=utf-8")
 
-		if lib.IsEmpty(postUser, postPass) {
-			w.Write(lib.MakeReturnJson(501, "账号或者密码不可为空", nil))
-			return
-		}
-
-		if !lib.IsAlphaNum(postUser, postPass) {
-			w.Write(lib.MakeReturnJson(501, "账号密码只能由字母和数字组成", nil))
-			return
-		}
-
-		if !lib.Len(6, 20, postUser, postPass) {
-			w.Write(lib.MakeReturnJson(501, "账号密码长度为6~20位", nil))
+		vali := validate.Validate{}
+		if !vali.Init().SetRule(map[string]string{
+			"pass": "require|length:6,20|alphaNum",
+			"user": "require|length:6,20|alphaNum",
+		}).SetMsg(map[string]string{
+			"pass.require":  "密码必须填写",
+			"pass.length":   "密码长度为6~20位",
+			"pass.alphaNum": "密码只能由字母和数字组成",
+			"user.require":  "账号必须填写",
+			"user.len":      "账号长度为6~20位",
+			"user.alphaNum": "账号只能由字母和数字组成",
+		}).Check(map[string]interface{}{
+			"pass": postPass,
+			"user": postUser,
+		}) {
+			w.Write(lib.MakeReturnJson(501, vali.GetError(), nil))
 			return
 		}
 
@@ -86,35 +91,40 @@ func register(w http.ResponseWriter, r *http.Request) {
 			w.Write(lib.MakeReturnJson(501, "需要填写全部参数", nil))
 			return
 		}
-		if !lib.IsChsAlphaNum(registerInfo.Nick) {
-			w.Write(lib.MakeReturnJson(501, "昵称只能由汉字、字母和数字组成", nil))
-			return
-		}
 
-		if !lib.Len(3, 15, registerInfo.Nick) {
-			w.Write(lib.MakeReturnJson(501, "昵称长度为1~5个汉字(15个字符)", nil))
-			return
-		}
-
-		if !lib.Len(6, 20, registerInfo.Pass, registerInfo.User) {
-			w.Write(lib.MakeReturnJson(501, "账号以及密码长度为6~20位", nil))
-			return
-		}
-
-		if !lib.IsAlphaNum(registerInfo.User, registerInfo.Pass) {
-			w.Write(lib.MakeReturnJson(501, "账号密码只能由字母和数字组成", nil))
+		vali := validate.Validate{}
+		if !vali.Init().SetRule(map[string]string{
+			"nick": "require|chsAlphaNum|length:3,15",
+			"pass": "require|length:6,20|alphaNum",
+			"user": "require|length:6,20|alphaNum",
+		}).SetMsg(map[string]string{
+			"nick.require":     "昵称必须填写",
+			"nick.chsAlphaNum": "昵称只能由汉字、字母和数字组成",
+			"nick.length":      "昵称长度为3~15个字符(一个汉字为3个字符)",
+			"pass.require":     "密码必须填写",
+			"pass.length":      "密码长度为6~20位",
+			"pass.alphaNum":    "密码只能由字母和数字组成",
+			"user.require":     "账号必须填写",
+			"user.length":      "账号长度为6~20位",
+			"user.alphaNum":    "账号只能由字母和数字组成",
+		}).Check(map[string]interface{}{
+			"nick": registerInfo.Nick,
+			"pass": registerInfo.Pass,
+			"user": registerInfo.User,
+		}) {
+			w.Write(lib.MakeReturnJson(501, vali.GetError(), nil))
 			return
 		}
 
 		user, _ := sql.GetUser(&sql.User{User: registerInfo.User})
 		if len(user) != 0 {
-			w.Write(lib.MakeReturnJson(502, "账号已存在", registerInfo.User))
+			w.Write(lib.MakeReturnJson(502, "账号已存在", nil))
 			return
 		}
 
 		user, _ = sql.GetUser(&sql.User{Nick: registerInfo.Nick})
 		if len(user) != 0 {
-			w.Write(lib.MakeReturnJson(502, "昵称不可重复", registerInfo.Nick))
+			w.Write(lib.MakeReturnJson(502, "昵称不可重复", nil))
 			return
 		}
 		err := sql.AddUser(registerInfo.User, registerInfo.Pass, registerInfo.Nick)
@@ -129,17 +139,29 @@ func register(w http.ResponseWriter, r *http.Request) {
 // 修改昵称
 func reviseName(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		nick := r.PostFormValue("nick")
+		var (
+			nick  string
+			vali  validate.Validate
+			token string
+		)
+		nick = r.PostFormValue("nick")
 		w.Header().Add("content-type", "application/json;charset=utf-8")
-		if !lib.IsChsAlphaNum(nick) {
-			w.Write(lib.MakeReturnJson(501, "昵称只能由汉字、字母和数字组成", nil))
+
+		vali = validate.Validate{}
+		if !vali.Init().SetRule(map[string]string{
+			"nick": "require|chsAlphaNum|length:3,15",
+		}).SetMsg(map[string]string{
+			"nick.require":     "昵称必须填写",
+			"nick.chsAlphaNum": "昵称只能由汉字、字母和数字组成",
+			"nick.length":      "昵称长度为1~5个汉字(15个字符)",
+		}).Check(map[string]interface{}{
+			"nick": nick,
+		}) {
+			w.Write(lib.MakeReturnJson(501, vali.GetError(), nil))
 			return
 		}
-		if !lib.Len(3, 15, nick) {
-			w.Write(lib.MakeReturnJson(501, "昵称长度为1~5个汉字(15个字符)", nil))
-			return
-		}
-		token := r.Header.Get("token")
+
+		token = r.Header.Get("token")
 		user, result := sql.CheckToken(token)
 		if result == false {
 			w.Write(lib.MakeReturnJson(503, "登录失效，请重新登录", nil))
@@ -177,7 +199,8 @@ func reviseFontColor(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		color := r.PostFormValue("fontColor")
 		w.Header().Add("content-type", "application/json;charset=utf-8")
-		if !lib.IsColorHex(color) {
+		vResult := validate.Validate{}
+		if !vResult.Init().IsColorHex(color, "", nil) {
 			w.Write(lib.MakeReturnJson(501, "请输入正确的颜色值", nil))
 			return
 		}

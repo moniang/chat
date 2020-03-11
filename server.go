@@ -15,34 +15,39 @@ import (
 
 // WebSocket处理事件
 func wsHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		token []string
+		ok    bool
+		user  sql.User
+		v     interface{}
+	)
 
 	// 判断是否为WebSocket协议
 	if !websocket.IsWebSocketUpgrade(r) {
 		http.Error(w, "不是webSocket协议", http.StatusBadRequest)
 		return
 	}
-	token, ok := r.URL.Query()["token"]
-	if !ok {
-		token = []string{"123"}
-	}
-	client := service.NewSocketClient(token[0], w, r)
-	// 判断Token，并获取个人信息
-	user, result := sql.CheckToken(token[0])
-	if !result {
-		client.Conn.Close()
+	if token, ok = r.URL.Query()["token"]; !ok {
 		return
 	}
 
+	// 判断Token，并获取个人信息
+	if user, ok = sql.CheckToken(token[0]); !ok {
+		return
+	}
+
+	// 创建Websocket长连接
+	client := service.NewSocketClient(token[0], w, r)
 	sendOnline := false
 
 	// 判断此用户是否已登录
-	v, ok := service.SocketList.Load(user.ID)
+	v, ok = service.SocketList.Load(user.ID)
 	if ok { // 已登录，通知下线信息
-		v.(service.Client).Conn.WriteJSON(&service.Message{
+		_ = v.(service.Client).Conn.WriteJSON(&service.Message{
 			ID: -1,
 		})
-		v.(service.Client).Conn.WriteMessage(websocket.CloseMessage, []byte{})
-		v.(service.Client).Conn.Close()
+		_ = v.(service.Client).Conn.WriteMessage(websocket.CloseMessage, []byte{})
+		_ = v.(service.Client).Conn.Close()
 		if time.Now().Unix()-v.(service.Client).UpTime > 600 {
 			sendOnline = true
 		} else {
@@ -75,6 +80,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		var m service.Message
 
 		messageType, byteMsg, connErr := client.Conn.ReadMessage()
+		if connErr != nil {
+			_ = client.Conn.Close()
+			service.SocketList.Delete(client.Id)
+			fmt.Println("用户主动断开了连接")
+			return
+		}
+
 		if messageType == -1 {
 			return
 		}
@@ -86,11 +98,6 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		err := json.Unmarshal(byteMsg, &m)
 		// err := client.Conn.ReadJSON(&m)
 
-		if websocket.IsCloseError(connErr, websocket.CloseNoStatusReceived, websocket.CloseAbnormalClosure, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-			service.SocketList.Delete(client.Id)
-			fmt.Println("用户主动断开了连接")
-			return
-		}
 		if err != nil {
 			fmt.Println("读取数据错误", err, string(byteMsg))
 			continue
@@ -112,7 +119,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("转换数据错误", err)
 			continue
 		}
-		SendMessage("Message", message)
+		_ = SendMessage("Message", message)
 		fmt.Printf("获取到数据: %#v\n", m)
 	}
 }
@@ -126,6 +133,6 @@ func SendAddMessage(nick string, vip int) {
 	})
 
 	if err == nil {
-		SendMessage("Message", addMsg)
+		_ = SendMessage("Message", addMsg)
 	}
 }

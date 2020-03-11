@@ -2,10 +2,12 @@ package sql
 
 import (
 	"crypto/md5"
+	"crypto/sha512"
 	"encoding/hex"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/moniang/chat/lib"
+	"golang.org/x/crypto/scrypt"
 	"time"
 )
 
@@ -88,7 +90,10 @@ func CheckToken(token string) (User, bool) {
 
 // 生成密码
 func makePass(pass string, salt string) string {
-	h := md5.New()
-	h.Write([]byte(salt + "chat" + pass + salt))
-	return hex.EncodeToString(h.Sum(nil))
+	m := md5.New()
+	m.Write([]byte(pass))
+	s := sha512.New()
+	s.Write([]byte("imoniang" + salt + "chat"))
+	k, _ := scrypt.Key(m.Sum(nil), s.Sum(nil), 1<<15, 8, 1, 32)
+	return hex.EncodeToString(k)
 }

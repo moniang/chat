@@ -12,6 +12,7 @@
 - github.com/nsqio/go-nsq
 - github.com/gorilla/websocket
 - github.com/jinzhu/gorm
+- github.com/moniang/validate
 
 ## 使用说明
 首次使用，请导入SQL文件
