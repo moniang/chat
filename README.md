@@ -29,7 +29,7 @@ chat
 界面：http://127.0.0.1:8080/
 界面在Vue分支
 
-演示地址：https://chat.imoniang.com
+演示地址：https://c.imoniang.com
 
 ### 感谢
 感谢邪少大佬远程教会我如何使用Git，还帮我搭建了服务器环境
